@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Item Data Graphs | Salesforce Personalization Workshop</title>
+  <link rel="stylesheet" href="assets/workshop.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="index.html">Salesforce Personalization</a>
+      <span class="badge">Theory track · 7 modules</span>
+    </div>
+  </header>
+  <div class="layout">
+    <nav class="sidebar" aria-label="Workshop modules">
+      <p class="sidebar-label">Included modules</p>
+      <ol class="sidebar-list">
+      <li><a class="nav-link" href="setup-personalization.html">Setup Personalization</a></li>
+      <li><a class="nav-link" href="sitemap.html">Web Sitemap</a></li>
+      <li><a class="nav-link" href="web-schemas.html">Web Schemas</a></li>
+      <li><a class="nav-link" href="data-streams.html">Data Streams</a></li>
+      <li><a class="nav-link" href="identity-resolution.html">Identity Resolution</a></li>
+      <li><a class="nav-link active" href="item-data-graphs.html">Item Data Graphs</a></li>
+      <li><a class="nav-link" href="profile-data-graphs.html">Profile Data Graphs</a></li>
+      </ol>
+      <p class="sidebar-note">Remaining Partner Workshop labs are covered in the <strong>hands-on</strong> session.</p>
+    </nav>
+    <main class="content" id="main-content">
+      <p id="top" class="workshop-meta">Administrator · Foundational · ~20 mins</p>
+      <h1 class="page-title">Item Data Graphs</h1>
+      <article class="vp-doc">
+<div class="page-with-toc"><div class="inline-toc"><aside id="toc" vp-toc=""><!----><div class="vp-toc-header">On This Page<!----><div class="arrow end"></div></div><div class="vp-toc-wrapper"><ul class="vp-toc-list"><li class="vp-toc-item"><a class="route-link vp-toc-link level2" href="item-data-graphs.html#introduction">Introduction</a></li><!----><li class="vp-toc-item"><a class="route-link vp-toc-link level2" href="item-data-graphs.html#deploy-calculated-insight">Deploy Calculated Insight</a></li><!----><li class="vp-toc-item"><a class="route-link vp-toc-link level2" href="item-data-graphs.html#create-a-product-data-graph">Create a Product Data Graph</a></li><!----><!----></ul><div class="vp-toc-marker" style="top: -2rem;"></div></div><!----></aside></div><div class="markdown-body"><h2 id="introduction" tabindex="-1"><a class="header-anchor" href="item-data-graphs.html#introduction"><span>Introduction</span></a></h2><p>Data graphs bring together structured data from your Data Model Objects (DMOs) in Data 360 and assembles them into an easy-to-use, unified view.</p><p>In this workshop, you will create a data graph for product data which will be used to power both a rules-based and objective-based recommender for website personalization.</p><div class="hint-container note"><p class="hint-container-title">Non-Product Item Data Graphs</p><p>In addition to creating item data graphs for products, you can also create an Item Data Graph for any DMO with the type <strong>Other</strong> to use with the personalization recommendations system. Common examples include articles, blogs, promotions, and other content-based data types.</p></div><p>Before starting the hands-on exercises in this workshop, watch the video below to learn about the different types of data graphs for personalization in Data 360 and key concepts.</p><p>Enter the password <div style="position: relative; display: inline-block;"><code class="has-copy-button">LearnSPtoday</code><button class="copy-button" aria-label="Copy code">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M7 9.667A2.667 2.667 0 0 1 9.667 7h8.666A2.667 2.667 0 0 1 21 9.667v8.666A2.667 2.667 0 0 1 18.333 21H9.667A2.667 2.667 0 0 1 7 18.333z"></path><path d="M4.012 16.737A2 2 0 0 1 3 15V5c0-1.1.9-2 2-2h10 c.75 0 1.158.385 1.5 1"></path>
+            </g>
+          </svg></button></div> to play the video.</p><img class="vidyard-player-embed" src="https://play.vidyard.com/TLMLsVMQXoUD6gnbksfg8L.jpg" data-uuid="TLMLsVMQXoUD6gnbksfg8L" data-v="4" data-type="inline" style="width: 100%; margin: auto; display: block;"><h2 id="deploy-calculated-insight" tabindex="-1"><a class="header-anchor" href="item-data-graphs.html#deploy-calculated-insight"><span>Deploy Calculated Insight</span></a></h2><p>First you will deploy a calculated insight from a data kit so that it's available to include in a data graph definition.</p><ol><li>Select <strong>Calculated Insights</strong> tab from the Data Cloud app.</li><li>Click <strong>New</strong>.</li><li>Select the <strong>From a Data Kit</strong> tile in the New Insight dialog.</li><li>Click <strong>Next</strong>.</li><li>Select <strong>Top Sellers Calculated Insight</strong>.</li><li>Click <strong>Next</strong>.</li><li>Click <strong>Activate</strong>.</li><li>Leave the schedule options as default settings and click <strong>Enable</strong>.</li></ol><div class="hint-container note"><p class="hint-container-title">Purpose of This Calculated Insight</p><p>This calculated insight is built on the Goods Product DMO and uses the product-related event data ingested and mapped from the website. Its purpose is to calculate the total number of units sold for each product.</p><p>In the next exercise, you will add this calculated insight to a product data graph and reference it in a recommendations strategy. This allows you to return products ordered by total units sold, enabling a simple “most popular products” recommendation use case.</p></div><h2 id="create-a-product-data-graph" tabindex="-1"><a class="header-anchor" href="item-data-graphs.html#create-a-product-data-graph"><span>Create a Product Data Graph</span></a></h2><p>With the calculated insight created, you can now create an item data graph that includes data from both the Goods Product DMO and calculated insight.</p><ol><li>Select the <strong>Data Graphs</strong> tab from the Data Cloud app.</li><li>Click <strong>New</strong>.</li><li>Leave the <strong>Start from Scratch</strong> tile selected, then click <strong>Next</strong>.</li><li>Leave the <strong>Standard Data Graph</strong> tile selected, then click <strong>Next</strong>.</li><li>Enter the value <div style="position: relative; display: inline-block;"><code class="has-copy-button">Products</code><button class="copy-button" aria-label="Copy code">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M7 9.667A2.667 2.667 0 0 1 9.667 7h8.666A2.667 2.667 0 0 1 21 9.667v8.666A2.667 2.667 0 0 1 18.333 21H9.667A2.667 2.667 0 0 1 7 18.333z"></path><path d="M4.012 16.737A2 2 0 0 1 3 15V5c0-1.1.9-2 2-2h10 c.75 0 1.158.385 1.5 1"></path>
+            </g>
+          </svg></button></div> in the <strong>Data Graph Name</strong> field.</li><li>Select <strong>Goods Product</strong> from the <strong>Primary Data Model Object</strong> menu.</li><li>Click <strong>Next</strong>.</li><li>In the Fields list, select the following fields:</li></ol><ul><li>Category</li><li>Image URL</li><li>Price</li><li>Product Description</li><li>Product Name</li><li>Product URL</li></ul><div class="hint-container tip"><p class="hint-container-title">Goods Product Fields</p><p>The selected fields can be used both in recommendation filter logic and returned as part of a personalization decision response.</p></div><ol start="9"><li>In the Data Model Objects tree, click the <iconify-icon class="vp-icon" icon="mdi:plus-circle-outline" sizing="height" height="1em" style="color:gray;"></iconify-icon> icon next to <strong>Goods Product</strong> (Primary Data Model Object).</li><li>Select <strong>Top Sellers Calculated Insight</strong>. The field values and dimensions are automatically selected.</li></ol><div class="hint-container note"><p class="hint-container-title">DMOs in Data Graphs</p><p>Any objects mapped within the same data space that have a defined relationship to the root DMO are available for selection in the data graph. For simplicity, you will not add additional objects to the item data graph in this exercise.</p></div><ol start="11"><li>Confirm the data graph structure and field count matches the screenshot below.</li></ol><figure><img src="assets/products-data-graph-C0FBW7bd.png" alt="Data Graph structure for Products Data Graph" tabindex="0" loading="lazy"><figcaption>Data Graph structure for Products Data Graph</figcaption></figure><ol start="12"><li>Click <strong>Save and Build</strong>.</li><li>In the Refresh Schedule modal, choose <strong>Every 30 Minutes</strong> from the <strong>Select a Refresh Interval</strong> menu.</li><li>Click <strong>Save and Build</strong>.</li></ol><div class="hint-container tip"><p class="hint-container-title">Refresh Interval</p><p>The refresh interval determines how frequently the data graph is refreshed. This directly affects when newly added items become eligible to be returned in a recommendations response.</p></div></div></div>
+      </article>
+      <nav class="vp-page-nav" aria-label="Módulos">
+      <a class="prev" href="identity-resolution.html">← Identity Resolution</a>
+      <a class="next" href="profile-data-graphs.html">Profile Data Graphs →</a>
+      </nav>
+    </main>
+  </div>
+  <footer class="site-footer">
+    <p>Partner Enablement — consolidated theory modules only.</p>
+  </footer>
+  <script src="assets/copy.js"></script>
+  <script async src="https://play.vidyard.com/embed/v4.js" type="text/javascript"></script>
+</body>
+</html>

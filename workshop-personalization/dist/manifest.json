@@ -1,0 +1,13 @@
+{
+  "pages": [
+    "setup-personalization",
+    "sitemap",
+    "web-schemas",
+    "data-streams",
+    "identity-resolution",
+    "item-data-graphs",
+    "profile-data-graphs"
+  ],
+  "source": "https://partnerworkshops.salesforce.com",
+  "note": "Solo estos 7 m\u00f3dulos; sin sidebar del portal completo."
+}

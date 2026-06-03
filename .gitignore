@@ -1,0 +1,8 @@
+.DS_Store
+*.log
+
+# Build tooling (not needed on Pages)
+workshop-personalization/node_modules/
+workshop-personalization/.pw-browsers/
+workshop-personalization/dist-scraped/
+workshop-personalization/package-lock.json
