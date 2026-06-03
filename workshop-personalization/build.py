@@ -386,11 +386,12 @@ def index_shell(nav_items: list[dict]) -> str:
     cards = "\n".join(
         f"""        <li class="index-card">
           <a href="{p['slug']}.html">
+            <span class="index-card-num" aria-hidden="true">{i}</span>
             <h2>{p['title']}</h2>
             <p class="index-meta">{p['meta']}</p>
           </a>
         </li>"""
-        for p in nav_items
+        for i, p in enumerate(nav_items, 1)
     )
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -419,10 +420,10 @@ def index_shell(nav_items: list[dict]) -> str:
         </p>
       </div>
       <p class="lead">
-        This guide includes <strong>only</strong> those mandatory modules—no links to the full Partner Workshops catalog.
-        Advanced implementation topics and remaining labs will be covered <strong>in person</strong> in Madrid.
+        Work through all seven modules below before the event. Additional topics will be covered
+        <strong>in person</strong> in Madrid.
       </p>
-      <p class="lead home-modules-intro">Work through the modules in order, or open the topic you are on:</p>
+      <p class="lead home-modules-intro">Complete the modules in this order:</p>
     </div>
     <ol class="index-list index-list--grid">
 {cards}
@@ -433,8 +434,7 @@ def index_shell(nav_items: list[dict]) -> str:
       <p class="footer-home-title">Partner EGM Enablement 2026</p>
       <p class="footer-home-meta">16–17 June 2026 · Madrid</p>
       <p>
-        Mandatory pre-work for attendees. Complete all seven modules before the event.
-        Hands-on exercises during the enablement are separate from this guide.
+        Mandatory pre-work for attendees. Complete all seven modules in order before the event.
       </p>
       <p class="footer-home-note">
         Exercise links inside each module (SDO, Postman, Chrome Web Store, sample data files, etc.)
@@ -787,6 +787,20 @@ body {
 .index-card a:hover {
   border-color: var(--sf-blue);
   box-shadow: 0 4px 16px rgba(1, 118, 211, 0.15);
+}
+.index-card-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-bottom: 0.65rem;
+  border-radius: 50%;
+  background: var(--sf-blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
 }
 .index-card h2 { margin: 0 0 0.35rem; font-size: 1.2rem; color: var(--sf-blue); }
 .index-meta { margin: 0; color: var(--muted); font-size: 0.9rem; }
