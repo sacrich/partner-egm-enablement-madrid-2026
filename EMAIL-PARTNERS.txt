@@ -1,0 +1,16 @@
+Subject: Mandatory pre-work — Partner EGM Enablement 2026 · Madrid (16–17 June)
+
+Hi,
+
+Before the Partner EGM Enablement 2026 event in Madrid (16–17 June), please complete the mandatory Salesforce Personalization pre-work:
+
+https://sacrich.github.io/partner-egm-enablement-madrid-2026/
+
+Open the link in your browser (Chrome recommended). No download or install is required—work through all seven modules in order. Hands-on labs will be covered in person at the event.
+
+Video segments use password: LearnSPtoday
+
+If you have questions, reply to this email.
+
+Thank you,
+[Your name]

@@ -40,11 +40,13 @@ Sustituye `TU_USUARIO` y `TU_REPO` por tu organización o usuario y el nombre de
 1. En el repo: **Settings** → **Pages**
 2. En **Build and deployment** → **Source**, elige **GitHub Actions**
 3. Tras el primer push, se ejecuta el workflow **Deploy Partner Enablement guide**
-4. En **Settings → Pages** verás la URL, por ejemplo:
+4. La URL publicada de este proyecto es:
 
-   `https://TU_USUARIO.github.io/TU_REPO/`
+   **https://sacrich.github.io/partner-egm-enablement-madrid-2026/**
 
-Esa es la URL que envías a los partners.
+Esa es la URL que envías a los partners (solo abrir en el navegador, sin descargas).
+
+Repositorio: https://github.com/sacrich/partner-egm-enablement-madrid-2026
 
 ## Actualizar el contenido
 
