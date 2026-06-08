@@ -10,6 +10,7 @@ import shutil
 import ssl
 import urllib.request
 from pathlib import Path
+from typing import Optional
 
 BASE = "https://partnerworkshops.salesforce.com"
 ROOT = Path(__file__).parent
@@ -21,6 +22,12 @@ DATA_DIR = OUT / "data"
 
 # slug -> bundle JS (desde prefetch del sitio VuePress)
 PAGES = [
+    {
+        "slug": "setup-marketing-cloud-next",
+        "title": "Setup Marketing Cloud Next",
+        "meta": "Administrator · Foundational · ~55 mins",
+        "scraped_raw": "setup-marketing-cloud-next-raw.html",
+    },
     {
         "slug": "setup-personalization",
         "title": "Setup Personalization",
@@ -162,6 +169,110 @@ def extract_html_chunks(js: str) -> str:
     return "\n".join(chunks)
 
 
+def _extract_markdown_content(html: str) -> str:
+    m = re.search(
+        r'<div id="markdown-content">(.*)</div><!----><!----><!----></div>',
+        html,
+        re.DOTALL,
+    )
+    return m.group(1) if m else html
+
+
+def _slice_section(body: str, start_id: str, end_id: Optional[str] = None) -> str:
+    start = body.find(f'id="{start_id}"')
+    if start < 0:
+        return ""
+    if end_id:
+        end = body.find(f'id="{end_id}"', start + 1)
+        if end > 0:
+            return body[start:end]
+    return body[start:]
+
+
+def _top_level_lis(ol_inner: str) -> list[str]:
+    """Solo <li> de primer nivel (ignora listas anidadas dentro de un paso)."""
+    items: list[str] = []
+    i = 0
+    length = len(ol_inner)
+    while i < length:
+        m = re.match(r"\s*<li\b", ol_inner[i:])
+        if not m:
+            i += 1
+            continue
+        start = i
+        i += m.end() - m.start()
+        depth = 1
+        while i < length and depth > 0:
+            open_li = re.match(r"<li\b", ol_inner[i:])
+            close_li = re.match(r"</li>", ol_inner[i:])
+            if open_li and (not close_li or open_li.start() <= close_li.start()):
+                depth += 1
+                i += open_li.end()
+            elif close_li:
+                depth -= 1
+                i += close_li.end()
+            else:
+                i += 1
+        items.append(ol_inner[start:i])
+    return items
+
+
+def _collect_ol_items(section: str, max_items: Optional[int] = None) -> list[str]:
+    items: list[str] = []
+    for olm in re.finditer(r"<ol([^>]*)>(.*?)</ol>", section, re.DOTALL):
+        for li in _top_level_lis(olm.group(2)):
+            items.append(li)
+            if max_items and len(items) >= max_items:
+                return items
+    return items
+
+
+def _tail_after_first_ol(section: str) -> str:
+    """Contenido tras el primer <ol> (figuras, más listas, h3, etc.)."""
+    idx = section.find("<ol")
+    if idx < 0:
+        return ""
+    first_end = section.find("</ol>", idx)
+    if first_end < 0:
+        return ""
+    return section[first_end + len("</ol>") :]
+
+
+def merge_marketing_cloud_setup_page(raw_mc_html: str, profile_html: str) -> str:
+    """
+    Página Marketing Cloud setup con sección Create a Data Graph híbrida:
+    pasos 1–11 de Create a Profile Data Graph + desde paso 10 del workshop MC.
+    """
+    mc_md = _extract_markdown_content(raw_mc_html)
+    prof_md = _extract_markdown_content(profile_html)
+
+    prof_dg = _slice_section(
+        prof_md, "create-a-profile-data-graph", "related-resources"
+    )
+    mc_dg = _slice_section(mc_md, "create-a-data-graph", "additional-resources")
+
+    profile_steps = _collect_ol_items(prof_dg, max_items=11)
+    mc_first_ol = re.search(r"<ol[^>]*>(.*?)</ol>", mc_dg, re.DOTALL)
+    mc_steps = (
+        _top_level_lis(mc_first_ol.group(1)) if mc_first_ol else []
+    )
+    mc_tail_steps = mc_steps[9:] if len(mc_steps) >= 10 else []
+
+    prefix = mc_dg[: mc_dg.find("<ol")]
+    merged_steps = profile_steps + mc_tail_steps
+    merged_ol = "<ol>\n" + "\n".join(merged_steps) + "\n</ol>"
+    dg_tail = _tail_after_first_ol(mc_dg)
+    dg_tail = dg_tail.replace(
+        "<strong>Messaging</strong> from the Data Graph menu",
+        "<strong>Profile</strong> from the Data Graph menu",
+    )
+
+    new_dg = prefix + merged_ol + dg_tail
+    new_mc_md = mc_md[: mc_md.find('id="create-a-data-graph"')] + new_dg
+
+    return raw_mc_html.replace(mc_md, new_mc_md)
+
+
 def fix_vidyard_embeds(body: str) -> str:
     """Asegura embeds Vidyard reproducibles con v4.js."""
     body = re.sub(
@@ -251,10 +362,12 @@ def clean_scraped_body(html: str, current_slug: str) -> str:
     )
     # Enlaces relativos tipo href="sitemap"
     body = re.sub(
-        r'href="(sitemap|web-schemas|data-streams|identity-resolution|item-data-graphs|profile-data-graphs|setup-personalization)"',
+        r'href="(sitemap|web-schemas|data-streams|identity-resolution|item-data-graphs|profile-data-graphs|setup-personalization|setup-marketing-cloud-next)"',
         r'href="\1.html"',
         body,
     )
+    body = body.replace('src="/assets/', 'src="assets/')
+    body = body.replace('href="/assets/', 'href="assets/')
     return body
 
 
@@ -415,12 +528,12 @@ def index_shell(nav_items: list[dict]) -> str:
       <div class="home-event-banner" role="note">
         <p class="home-event-dates"><strong>16–17 June 2026</strong> · Madrid</p>
         <p>
-          Complete the seven modules below <strong>before</strong> you join us at Partner EGM Enablement 2026.
+          Complete all modules below <strong>before</strong> you join us at Partner EGM Enablement 2026.
           This is the required theory and setup track so you can focus on hands-on labs during the event.
         </p>
       </div>
       <p class="lead">
-        Work through all seven modules below before the event. Additional topics will be covered
+        Work through all modules below in order before the event. Additional topics will be covered
         <strong>in person</strong> in Madrid.
       </p>
       <p class="lead home-modules-intro">Complete the modules in this order:</p>
@@ -434,7 +547,7 @@ def index_shell(nav_items: list[dict]) -> str:
       <p class="footer-home-title">Partner EGM Enablement 2026</p>
       <p class="footer-home-meta">16–17 June 2026 · Madrid</p>
       <p>
-        Mandatory pre-work for attendees. Complete all seven modules in order before the event.
+        Mandatory pre-work for attendees. Complete all modules in order before the event.
       </p>
       <p class="footer-home-note">
         Exercise links inside each module (SDO, Postman, Chrome Web Store, sample data files, etc.)
@@ -482,8 +595,18 @@ def main() -> None:
     raw_html_all = ""
     for p in PAGES:
         if use_scraped:
-            scraped_path = SCRAPED / f"{p['slug']}.html"
-            raw = scraped_path.read_text(encoding="utf-8")
+            if p["slug"] == "setup-marketing-cloud-next":
+                raw_path = SCRAPED / p.get(
+                    "scraped_raw", "setup-marketing-cloud-next-raw.html"
+                )
+                profile_path = SCRAPED / "profile-data-graphs.html"
+                raw = merge_marketing_cloud_setup_page(
+                    raw_path.read_text(encoding="utf-8"),
+                    profile_path.read_text(encoding="utf-8"),
+                )
+            else:
+                scraped_path = SCRAPED / f"{p['slug']}.html"
+                raw = scraped_path.read_text(encoding="utf-8")
             raw_html_all += raw
             body = clean_scraped_body(raw, p["slug"])
         else:
@@ -529,7 +652,7 @@ def main() -> None:
     manifest = {
         "pages": [p["slug"] for p in PAGES],
         "source": BASE,
-        "note": "Solo estos 7 módulos; sin sidebar del portal completo.",
+        "note": "8 módulos (MC Next + 7 Personalization); sin sidebar del portal completo.",
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     (OUT / ".nojekyll").touch()

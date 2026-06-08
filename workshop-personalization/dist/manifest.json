@@ -1,5 +1,6 @@
 {
   "pages": [
+    "setup-marketing-cloud-next",
     "setup-personalization",
     "sitemap",
     "web-schemas",
@@ -9,5 +10,5 @@
     "profile-data-graphs"
   ],
   "source": "https://partnerworkshops.salesforce.com",
-  "note": "Solo estos 7 m\u00f3dulos; sin sidebar del portal completo."
+  "note": "8 m\u00f3dulos (MC Next + 7 Personalization); sin sidebar del portal completo."
 }
