@@ -14,7 +14,7 @@ from typing import Optional
 
 BASE = "https://partnerworkshops.salesforce.com"
 SITE_BASE = "/partner-egm-enablement-madrid-2026"
-DATA_CACHE_VERSION = "20260612"
+DATA_CACHE_VERSION = "20260613"
 ROOT = Path(__file__).parent
 COPY_JS = ROOT / "copy.js"
 OUT = ROOT / "dist"
@@ -346,18 +346,28 @@ def inject_setup_personalization_notes(body: str) -> str:
     )
 
 
+DATA_FILE_MIME = {
+    ".csv": "text/csv",
+    ".json": "application/json",
+    ".js": "application/javascript",
+}
+
+
 def fix_data_download_links(body: str) -> str:
-    """Enlaces de descarga absolutos + cache-bust (el CSV viejo quedaba en caché del navegador)."""
+    """Enlaces de descarga absolutos + cache-bust (evita HTML del SPA y caché vieja)."""
     pattern = (
-        r'<a\s+href="(?:(?:\.\./){2}data/|data/)(velo_[^"]+\.csv)"([^>]*)>'
+        r'<a\s+href="(?:(?:\.\./){2}data/|data/)([^"]+)"([^>]*)>'
     )
 
     def repl(m: re.Match) -> str:
-        name = m.group(1)
+        name = m.group(1).split("?", 1)[0]
         url = f"{SITE_BASE}/data/{name}?v={DATA_CACHE_VERSION}"
         extra = m.group(2)
         if "download=" not in extra:
-            extra = f' download="{name}" type="text/csv"' + extra
+            mime = DATA_FILE_MIME.get(
+                Path(name).suffix.lower(), "application/octet-stream"
+            )
+            extra = f' download="{name}" type="{mime}"' + extra
         return f'<a href="{url}"{extra}>'
 
     return re.sub(pattern, repl, body)
