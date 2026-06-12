@@ -18,6 +18,7 @@ COPY_JS = ROOT / "copy.js"
 OUT = ROOT / "dist"
 SCRAPED = ROOT / "dist-scraped"
 ASSETS = OUT / "assets"
+SOURCE_DATA = ROOT / "data"
 DATA_DIR = OUT / "data"
 
 # slug -> bundle JS (desde prefetch del sitio VuePress)
@@ -559,8 +560,17 @@ def index_shell(nav_items: list[dict]) -> str:
 </html>"""
 
 
-def download_data_files(html: str) -> None:
+def sync_data_files(html: str) -> None:
+    """Copia ficheros de data/ al sitio publicado (evita descargar HTML del SPA)."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+    bundled: set[str] = set()
+    if SOURCE_DATA.exists():
+        for src in sorted(SOURCE_DATA.iterdir()):
+            if src.is_file():
+                shutil.copy2(src, DATA_DIR / src.name)
+                bundled.add(src.name)
+                print(f"  data: {src.name} (bundled)")
+
     names: set[str] = set()
     for m in re.finditer(r"/workshops/salesforce-personalization/data/([^\"']+)", html):
         names.add(m.group(1))
@@ -568,15 +578,18 @@ def download_data_files(html: str) -> None:
         names.add(m.group(1))
     for m in re.finditer(r"velo_[a-z_]+\.csv", html):
         names.add(m.group(0))
-    for name in sorted(names):
+
+    for name in sorted(names - bundled):
         dest = DATA_DIR / name
-        if dest.exists():
+        if dest.exists() and not dest.read_bytes()[:20].startswith(b"<!doctype"):
             continue
         try:
-            dest.write_bytes(
-                fetch(f"{BASE}/workshops/salesforce-personalization/data/{name}")
-            )
-            print(f"  data: {name}")
+            data = fetch(f"{BASE}/workshops/salesforce-personalization/data/{name}")
+            if data[:15].lower().startswith(b"<!doctype") or data[:6].lower() == b"<html":
+                print(f"  WARN data {name}: remote URL returned HTML, skipped")
+                continue
+            dest.write_bytes(data)
+            print(f"  data: {name} (remote)")
         except Exception as e:
             print(f"  WARN data {name}: {e}")
 
@@ -624,7 +637,7 @@ def main() -> None:
 
     print("\nDescargando imágenes, estilos y CSVs…")
     download_assets(all_assets)
-    download_data_files(raw_html_all)
+    sync_data_files(raw_html_all)
 
     print("\nGenerando HTML…")
     for p in PAGES:
