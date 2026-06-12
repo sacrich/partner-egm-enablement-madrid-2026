@@ -323,6 +323,29 @@ def strip_toc_resource_entries(toc_html: str, slug: str) -> str:
     return toc_html
 
 
+EVENT_TIME_FORMAT_NOTE = """
+<div class="hint-container note"><p class="hint-container-title">Event Time date format</p>
+<p>Data Cloud may not auto-detect the <strong>dateTime</strong> column format from the CSV.
+If you see the <strong>Add Date Format</strong> dialog, enter this Java DateTime pattern
+(case-sensitive):</p>
+<p><code class="has-copy-button">yyyy-MM-dd'T'HH:mm:ss.SSSSSS</code></p>
+<p>Example value in the file: <code>2026-02-16T01:40:38.805860</code></p>
+</div>""".strip()
+
+
+def inject_setup_personalization_notes(body: str) -> str:
+    """Notas de enablement que no están en el workshop original."""
+    marker = (
+        '<li>Set the <strong>Event Time</strong> field to <strong>dateTime</strong>.</li>'
+    )
+    if marker not in body or EVENT_TIME_FORMAT_NOTE in body:
+        return body
+    return body.replace(
+        marker,
+        marker + EVENT_TIME_FORMAT_NOTE,
+    )
+
+
 def fix_data_download_links(body: str) -> str:
     """Enlaces de descarga absolutos + cache-bust (el CSV viejo quedaba en caché del navegador)."""
     pattern = (
@@ -389,6 +412,8 @@ def clean_scraped_body(html: str, current_slug: str) -> str:
     body = body.replace('src="/assets/', 'src="assets/')
     body = body.replace('href="/assets/', 'href="assets/')
     body = fix_data_download_links(body)
+    if current_slug == "setup-personalization":
+        body = inject_setup_personalization_notes(body)
     return body
 
 
