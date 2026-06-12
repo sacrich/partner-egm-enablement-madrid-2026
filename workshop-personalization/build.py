@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Optional
 
 BASE = "https://partnerworkshops.salesforce.com"
+SITE_BASE = "/partner-egm-enablement-madrid-2026"
+DATA_CACHE_VERSION = "20260612"
 ROOT = Path(__file__).parent
 COPY_JS = ROOT / "copy.js"
 OUT = ROOT / "dist"
@@ -321,6 +323,23 @@ def strip_toc_resource_entries(toc_html: str, slug: str) -> str:
     return toc_html
 
 
+def fix_data_download_links(body: str) -> str:
+    """Enlaces de descarga absolutos + cache-bust (el CSV viejo quedaba en caché del navegador)."""
+    pattern = (
+        r'<a\s+href="(?:(?:\.\./){2}data/|data/)(velo_[^"]+\.csv)"([^>]*)>'
+    )
+
+    def repl(m: re.Match) -> str:
+        name = m.group(1)
+        url = f"{SITE_BASE}/data/{name}?v={DATA_CACHE_VERSION}"
+        extra = m.group(2)
+        if "download=" not in extra:
+            extra = f' download="{name}" type="text/csv"' + extra
+        return f'<a href="{url}"{extra}>'
+
+    return re.sub(pattern, repl, body)
+
+
 def clean_scraped_body(html: str, current_slug: str) -> str:
     """Limpia HTML scrapeado: quita migas/prev-next fuera de los 7 módulos."""
     m = re.search(r'<div id="markdown-content">(.*)</div><!----><!----><!----></div>',
@@ -369,6 +388,7 @@ def clean_scraped_body(html: str, current_slug: str) -> str:
     )
     body = body.replace('src="/assets/', 'src="assets/')
     body = body.replace('href="/assets/', 'href="assets/')
+    body = fix_data_download_links(body)
     return body
 
 
